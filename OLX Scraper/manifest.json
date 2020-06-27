@@ -1,0 +1,30 @@
+{
+    "manifest_version": 2,
+    "name": "OLX Scraper",
+    "version": "0.1",
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.olx.ro/hobby-sport-turism/biciclete-fitness/biciclete/*",
+                "https://www.olx.ro/oferta/*"
+            ],
+            "js": [
+                "jquery-3.5.1.min.js",
+                "content.js"
+            ]
+        }
+    ],
+    "permissions": [
+        "https://www.olx.ro/",
+        "storage"
+    ],
+    "page_action": {
+        "default_icon": {},
+        "default_title": "Scrape bikes",
+        "default_popup": "popup.html"
+    },
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    }
+}
