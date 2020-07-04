@@ -1,6 +1,6 @@
 module.exports = app => {
     const ads = require("../controllers/ad.controller.js");
-  
+
     // Create a new Ad
     app.post("/ads", ads.create);
   
