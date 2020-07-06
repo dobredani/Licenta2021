@@ -4,6 +4,7 @@ const sql = require("./db.js");
 const Image = function(image) {
   this.fk_olx_ad_id = image.fk_olx_ad_id;
   this.image_path = image.image_path;
+  this.image_url = image.image_url;
   this.label = image.label;
 };
 

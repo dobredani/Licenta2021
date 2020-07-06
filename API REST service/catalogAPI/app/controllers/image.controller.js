@@ -13,6 +13,7 @@ exports.create = (req, res) => {
     const image = new Image({
       fk_olx_ad_id: req.body.fk_olx_ad_id,
       image_path: req.body.image_path,
+      image_url: req.body.image_url,
       label: req.body.label
     });
   
