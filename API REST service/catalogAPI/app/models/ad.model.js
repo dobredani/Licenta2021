@@ -9,6 +9,8 @@ const Ad = function(ad) {
   this.location = ad.location;
   this.price = ad.price;
   this.active = ad.active;
+  this.descr = ad.descr;
+  this.scraped_images = ad.scraped_images;
 };
 
 Ad.create = (newAd, result) => {
@@ -58,8 +60,8 @@ Ad.getAll = result => {
 
 Ad.updateById = (id, ad, result) => {
   sql.query(
-    "UPDATE ads SET email = ?, name = ?, active = ? WHERE id = ?",
-    [ad.email, ad.name, ad.active, id],
+    "UPDATE ads SET descr = ?, postedTimestamp = ?, scraped_images = ? WHERE adId = ?",
+    [ad.descr, ad.postedTimestamp, ad.scraped_images, id],
     (err, res) => {
       if (err) {
         console.log("error: ", err);

@@ -23,33 +23,81 @@ window.onload = function() {
          * 
          * the data is scraped if there is a record in ads table with the adId/URL
          */
-        setTimeout(() => {scrape_images();}, 4000);
+        setTimeout(() => {addAdDetails(); scrape_images();}, 3000);
     }
 };
 
-//https://stackoverflow.com/questions/51076581/download-images-using-html-or-javascript
-function toDataURL(url) {
-    return fetch(url).then((response) => {
-            return response.blob();
-        }).then(blob => {
-            return URL.createObjectURL(blob);
-        });
+//https://stackoverflow.com/questions/17527713/force-browser-to-download-image-files-on-click/49836565
+function download(url, filename) {
+    console.log('FETCH: ' + url );
+    
+    var image = new Image();
+    image.crossOrigin = "anonymous";
+    image.src = url;
+    // get file name - you might need to modify this if your image url doesn't contain a file extension otherwise you can set the file name manually
+    image.onload = function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+        canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+        canvas.getContext('2d').drawImage(this, 0, 0);
+        var blob;
+        // ... get as Data URI
+        if (image.src.indexOf(".jpg") > -1) {
+        blob = canvas.toDataURL("image/jpeg");
+        } else if (image.src.indexOf(".png") > -1) {
+        blob = canvas.toDataURL("image/png");
+        } else if (image.src.indexOf(".gif") > -1) {
+        blob = canvas.toDataURL("image/gif");
+        } else {
+        blob = canvas.toDataURL("image/png");
+        }
+
+        const a = document.createElement("a");
+        a.href = blob;
+        a.download = filename;
+        a.style = "width: 50px; height: 30px; display:contents";
+        a.textContent = filename + ' ' + url;
+        document.body.appendChild(a);
+        a.click();
+
+    };
 }
 
-// https://stackoverflow.com/questions/51076581/download-images-using-html-or-javascript
-async function download(url, filename) {
-    const a = document.createElement("a");
-    a.href = await toDataURL(url);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+function addAdDetails() {
+    let desc = document.getElementById("textContent");
+    let timestamp = document.querySelector('#offerbottombar .offer-bottombar__item:first-child strong')
+    let adId = document.querySelector('#offerbottombar .offer-bottombar__item:last-child strong')
+
+    // add ad desc
+    payload = {
+        "descr": desc.textContent,
+        "postedTimestamp": timestamp.textContent,
+        "scraped_images": true
+            };
+
+    xhr = new XMLHttpRequest;
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            console.log(xhr.response);
+        }
+    }
+    xhr.onerror = function() {
+        console.log(xhr.response);
+    }
+    xhr.open('PUT','http://localhost:3000/ads/olx' + adId.textContent,true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    try {
+        xhr.send(JSON.stringify(payload));
+    }
+    catch(err){
+        console.log(err);
+    }
+    
 }
 
 function scrape_images() {
     let images = document.querySelectorAll("#descGallery a");
-    let desc = document.getElementById("textContent");
-    let timestamp = document.querySelector('#offerbottombar .offer-bottombar__item:first-child strong')
     let adId = document.querySelector('#offerbottombar .offer-bottombar__item:last-child strong')
 
     if (images.length == 0) {
@@ -63,21 +111,23 @@ function scrape_images() {
         timeout = timeout + 500 + Math.random() * 2000;
         setTimeout(function() {
         
-            // download images (maybe download from node.js server?)
-            download(image.hasAttribute('href')?image.href:image.desc, adId.textContent + ' [' + (xi+1) + '].jpg');
-
+            // add image to db
             payload = {
                 "fk_olx_ad_id": 'olx' + adId.textContent,
-                "image_url": image.hasAttribute('href')?image.href:image.desc,
+                "image_url": image.hasAttribute('href')?image.href:image.src,
                 "image_path": adId.textContent + ' [' + (xi+1) + '].jpg'
                     };
 
-            const xhr = new XMLHttpRequest;
+            let xhr = new XMLHttpRequest;
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     console.log(xhr.response);
 
-                    if (xi == images.length - 1) setTimeout(() => {window.close();},3000);
+                    if (xi == images.length - 1) {
+                        setTimeout(() => {
+                        window.close();
+                    },3000);
+                }
                 }
             }
             xhr.onerror = function() {
@@ -92,12 +142,12 @@ function scrape_images() {
             catch(err){
                 console.log(err);
             }
+
+            // download images to hdd (maybe download from node.js server?)
+            download(image.hasAttribute('href')?image.href:image.src, adId.textContent + ' [' + (xi+1) + '].jpg');
+
         }, timeout)
     })
-
-    console.log(timestamp.textContent + ' ' + adId.textContent);
-
-    
 
 }
 /**
