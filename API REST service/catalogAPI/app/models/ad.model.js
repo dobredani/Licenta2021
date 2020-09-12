@@ -27,7 +27,7 @@ Ad.create = (newAd, result) => {
 };
 
 Ad.findById = (adId, result) => {
-  sql.query(`SELECT * FROM ads WHERE id = ${adId}`, (err, res) => {
+  sql.query(`SELECT * FROM ads WHERE adId = '${adId}'`, (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(err, null);

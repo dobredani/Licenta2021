@@ -160,6 +160,33 @@ function crawl_forward() {
     let offers = offers_container.querySelectorAll("tr.wrap");
 
     ajaxStoreAd(offers, 0);
+
+}
+
+function readAd(adId, offers, index) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            console.log(xhr.response);
+
+
+            // crawl next ad on same page
+            stopCrawler = !ajaxStoreAd(offers, index);
+            
+        }
+    };
+    xhr.onerror = function() {
+        console.log(xhr.response);
+    };
+    xhr.open('GET','http://localhost:3000/ads/' + adId,true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    try {
+    xhr.send();
+    }
+    catch(err) {
+        console.log(err);
+    }
 }
 
 /**
@@ -169,6 +196,19 @@ function crawl_forward() {
  */
 function ajaxStoreAd(offers, index) {
     if (stopCrawler) return false;
+
+    if (index >= offers.length) {
+        // simulate user interaction with random delay
+        let timeout = 5000 + Math.random() * 15000;
+        setTimeout(() => {
+            if (stopCrawler) return false;
+            
+            // move to next ads listing page
+            window.location.href = document.querySelector('a[data-cy="page-link-next"]').href;
+            
+        }, timeout);
+        return true;
+    }
 
     let ad = offers[index];
     let title = ad.querySelector("td.title-cell .linkWithHash");
@@ -199,7 +239,10 @@ function ajaxStoreAd(offers, index) {
                 // the server has signaled a duplicated ad, meaning that the crawler should stop !?
                 // TODO verify above logic when ads start to be reposted
 
-                stopCrawler = true;
+                // update: check when ad as added in the database and if the crawler should move forward
+                readAd('olx' + id, offers, index+1);
+
+                // stopCrawler = true;
                 return;
             }
 
@@ -222,15 +265,6 @@ function ajaxStoreAd(offers, index) {
                         }
                         else
                         {
-                            // simulate user interaction with random delay
-                            let timeout = 5000 + Math.random() * 15000;
-                            setTimeout(() => {
-                                if (stopCrawler) return false;
-                                
-                                // move to next ads listing page
-                                window.location.href = document.querySelector('a[data-cy="page-link-next"]').href;
-                                
-                            }, timeout);
 
                         }
                     }
